@@ -13,6 +13,11 @@ def add():
     return render_template('base.html')
 
 
+@app.route('/')
+def hello():
+    return render_template('index.html')
+
+
 
 
 
