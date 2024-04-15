@@ -3,58 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        form {
-            max-width: 300px;
-            margin: 0 auto;
-        }
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        input[type="submit"] {
-            width: 100%;
-            background-color: #4CAF50;
-            color: white;
-            padding: 14px 20px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-        .error {
-            color: red;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-    </style>
+    <title>Banking Interface</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
 </head>
 <body>
-    <h2>Login Page</h2>
-    <form id="loginForm" onsubmit="return validateForm()">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <div id="usernameError" class="error"></div>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <div id="passwordError" class="error"></div>
-        <input type="submit" value="Login">
-
-    </form>
-
-    <script>
-
-    </script>
+    <div class="container">
+        <h1 class="text-center mt-5">Welcome to Our Bank</h1>
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Login</h5>
+                        <p class="card-text">If you have an account with us, please login.</p>
+                        <a href="/login" class="btn btn-primary">Login</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Register</h5>
+                        <p class="card-text">If you don't have an account, please register.</p>
+                        <a href="/register" class="btn btn-primary">Register</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
