@@ -75,7 +75,9 @@ def create_request():
 
 @app.route('/Customer_create', methods=['POST'])
 def create_request_post():
-    conn.execute(text('INSERT INTO Customers (OpenDate, SSN, Address, PhoneNumber, Email, Passwords) VALUES (CURRENT_DATE, :ssn, :address, :phone_number, :email, :password)'), request.form)
+    form_data = request.form.copy()
+    form_data['phone_number'] = form_data.pop('phone')
+    conn.execute(text('INSERT INTO Customers (OpenDate, SSN, Address, PhoneNumber, Email, Passwords) VALUES (CURRENT_DATE, :ssn, :address, :phone_number, :email, :passwords)'), form_data)
     conn.commit()
     return render_template('Customer_create.html')
 
