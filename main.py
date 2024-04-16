@@ -49,12 +49,13 @@ def login_post():
             elif user.acc_type == 'Customer':
                 customer = session.execute(text('SELECT * FROM customers WHERE email = :email'),
                                            {'email': user.email}).fetchone()
-                flask_session['user_id'] = customer.AccountID  # Store the student's ID in the session
-                flask_session['customer_id'] = customer.AccountID  # Store the student's ID in the session
+                flask_session['user_id'] = customer.CustomerID  # Store the student's ID in the session
+                flask_session['customer_id'] = customer.CustomerID  # Store the student's ID in the session
                 return render_template('homepage.html')
         else:
             invalid = "Invalid email or password"
             return render_template('login.html', invalid=invalid)
+
 
 @app.route('/register', methods=['GET'])
 def register():
@@ -63,7 +64,9 @@ def register():
 
 @app.route('/register', methods=['POST'])
 def create_user():
-    conn.execute(text('INSERT INTO Users (Username, Email, full_name, acc_type, Keyword) VALUES (:username, :email, :full_name, "Customer", :Keyword)'), request.form)
+    conn.execute(text(
+        'INSERT INTO Users (Username, Email, full_name, acc_type, Keyword) VALUES (:username, :email, :full_name, "Customer", :Keyword)'),
+                 request.form)
     conn.commit()
     return render_template('Customer_create.html')
 
@@ -76,8 +79,12 @@ def create_request():
 @app.route('/Customer_create', methods=['POST'])
 def create_request_post():
     form_data = request.form.copy()
-    form_data['phone_number'] = form_data.pop('phone')
-    conn.execute(text('INSERT INTO Customers (OpenDate, SSN, Address, PhoneNumber, Email, Passwords) VALUES (CURRENT_DATE, :ssn, :address, :phone_number, :email, :passwords)'), form_data)
+    phone_number = form_data.get('phone')
+    if phone_number is not None:
+        form_data['phone_number'] = form_data.pop('phone')
+    conn.execute(text(
+        'INSERT INTO Customers (OpenDate, SSN, Address, PhoneNumber, Email, Passwords) VALUES (CURRENT_DATE, :ssn, :address, :phone_number, :email, :passwords)'),
+                 form_data)
     conn.commit()
     return render_template('Customer_create.html')
 
