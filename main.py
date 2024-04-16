@@ -63,9 +63,9 @@ def register():
 
 @app.route('/register', methods=['POST'])
 def create_user():
-    conn.execute(text('INSERT INTO Users (Email, full_name, acc_type, Keyword) VALUES (:email, :full_name, "Customer", :Keyword)'), request.form)
+    conn.execute(text('INSERT INTO Users (Username, Email, full_name, acc_type, Keyword) VALUES (:username, :email, :full_name, "Customer", :Keyword)'), request.form)
     conn.commit()
-    return render_template('register.html')
+    return render_template('Customer_create.html')
 
 
 @app.route('/Customer_create', methods=['GET'])
@@ -74,8 +74,8 @@ def create_request():
 
 
 @app.route('/Customer_create', methods=['POST'])
-def create_customer():
-    conn.execute(text('INSERT INTO Customers (AccountNumber, CustomerID, SSN, Address, PhoneNumber, Email, Passwords, debit_cardnumber, Card_Pin, Expire_Date) VALUES (:AccountNumber, :CustomerID, :SSN, :Address, :PhoneNumber, :Email, :Passwords, :debit_cardnumber, :Card_Pin, :Expire_Date)'), request.form)
+def create_request_post():
+    conn.execute(text('INSERT INTO Customers (OpenDate, SSN, Address, PhoneNumber, Email, Passwords) VALUES (CURRENT_DATE, :ssn, :address, :phone_number, :email, :password)'), request.form)
     conn.commit()
     return render_template('Customer_create.html')
 
