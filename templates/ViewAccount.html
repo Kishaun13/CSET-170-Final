@@ -30,13 +30,22 @@
         </div>
     </nav>
 
-    <div class="container">
-        <h1>Welcome to the Home Page!</h1>
-   {% block body %}
-    {% endblock %}
-    </div>
 
-    <footer class="footer mt-auto py-3 bg-light">
+
+
+
+<h1>Account Details</h1>
+<p>Account Number: {{ customer.AccountNumber }}</p>
+<p>Account Status: {{ customer.acc_status }}</p>
+<p>Open Date: {{ customer.OpenDate }}</p>
+<p>SSN: {{ customer.SSN }}</p>
+<p>Address: {{ customer.Address }}</p>
+<p>Phone Number: {{ customer.PhoneNumber }}</p>
+<p>Email: {{ customer.Email }}</p>
+<p>Balance: {{ customer.Balance }}</p>
+<!-- Add more details as needed -->
+
+ <footer class="footer mt-auto py-3 bg-light">
         <div class="container">
             <span class="text-muted">Hello!</span>
         </div>

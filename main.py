@@ -1,7 +1,8 @@
 from random import random, randint
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 from sqlalchemy import create_engine, text
+from sqlalchemy.dialects import mysql
 from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
@@ -28,39 +29,6 @@ def login():
 
 from flask import session as flask_session
 
-
-# @app.route('/login', methods=['POST'])
-# def login_post():
-#     with app.app_context():
-#         engine = create_engine(connect)
-#         Session = sessionmaker(bind=engine)
-#         session = Session()
-#         conn = engine.connect()
-#
-#         user = session.execute(text('SELECT email, acc_type FROM USERS WHERE email = :email AND Keyword = :Keyword'),
-#                                request.form).fetchone()
-#         session.commit()
-#         conn.commit()
-#
-#         if user:
-#             if user.acc_type == 'Admin':
-#                 admin = session.execute(text('SELECT * FROM admins WHERE email = :email'),
-#                                         {'email': user.email}).fetchone()
-#                 flask_session['user_id'] = admin.AdminID  # Store the admins id in the session
-#                 return render_template('admin.html')
-#             elif user.acc_type == 'Customer':
-#                 customer = session.execute(text('SELECT * FROM customers WHERE email = :email'),
-#                                            {'email': user.email}).fetchone()
-#                 if customer is not None:
-#                     flask_session['user_id'] = customer.CustomerID  # Store the customer's ID in the session
-#                     flask_session['customer_id'] = customer.CustomerID  # Store the customer's ID in the session
-#                     return render_template('homepage.html')
-#                 else:
-#                     invalid = "Invalid email or password"
-#                     return render_template('login.html', invalid=invalid)
-#         else:
-#             invalid = "Invalid email or password"
-#             return render_template('login.html', invalid=invalid)
 @app.route('/login', methods=['POST'])
 def login_post():
     with app.app_context():
@@ -85,10 +53,31 @@ def login_post():
                                            {'email': user.email}).fetchone()
                 flask_session['user_id'] = customer.CustomerID  # Store the student's ID in the session
                 flask_session['customer_id'] = customer.CustomerID  # Store the student's ID in the session
+
+                # Fetch the AccountNumber for the logged-in customer
+                account_number = get_logged_in_account_number()
+                flask_session['account_number'] = account_number  # Store the AccountNumber in the session
+
                 return render_template('homepage.html')
         else:
             invalid = "Invalid email or password"
             return render_template('login.html', invalid=invalid)
+def get_logged_in_account_number():
+    with app.app_context():
+        engine = create_engine(connect)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        conn = engine.connect()
+
+        account_number = session.execute(text('SELECT AccountNumber FROM Customers WHERE CustomerID = :customer_id'),
+                                         {'customer_id': flask_session['customer_id']}).fetchone()
+        session.commit()
+        conn.commit()
+
+        if account_number is None:
+            return None
+
+        return account_number[0]
 
 
 @app.route('/register', methods=['GET'])
@@ -116,8 +105,17 @@ def create_request_post():
     phone_number = form_data.get('phone')
     if phone_number is not None:
         form_data['phone_number'] = form_data.pop('phone')
+
+    # Generate a unique account number
+    account_number = generate_account_number()
+    form_data['account_number'] = account_number
+
+    # Get the user_id from the session or another source
+    user_id = session.get('user_id')  # Replace this with your method of getting the user_id
+    form_data['user_id'] = user_id
+
     conn.execute(text(
-        'INSERT INTO Customers (OpenDate, SSN, Address, PhoneNumber, Email, Passwords) VALUES (CURRENT_DATE, :ssn, :address, :phone_number, :email, :passwords)'),
+        'INSERT INTO Customers (OpenDate, SSN, Address, PhoneNumber, Email, Passwords, AccountNumber, UserID) VALUES (CURRENT_DATE, :ssn, :address, :phone_number, :email, :passwords, :account_number, :user_id)'),
         form_data)
     conn.commit()
     return render_template('login.html')
@@ -144,26 +142,7 @@ def view_accounts_post():
 
     return render_template('admin_accounts.html', accounts=accounts)
 
-# @app.route('/admin_approve/<int:customer_id>', methods=['POST'])
-# def approve(customer_id):
-#     # Check if the user is logged in as admin
-#     if 'user_id' not in flask_session or flask_session['user_id'] != 1:
-#         return render_template('login.html')
-#
-#     # Update the account status to "Approved"
-#     conn.execute(text('UPDATE Customers SET acc_status = "Approved" WHERE CustomerID = :customer_id'),
-#                  {'customer_id': customer_id})
-#     conn.commit()
-#
-#     # Generate a unique bank account number for the approved user
-#     account_number = generate_account_number()
-#
-#     # Insert the new bank account into the BankAccounts table
-#     conn.execute(text('INSERT INTO BankAccounts (AccountNumber, CustomerID) VALUES (:account_number, :customer_id)'),
-#                  {'account_number': account_number, 'customer_id': customer_id})
-#     conn.commit()
-#
-#     return redirect('/admin/accounts')
+
 
 
 @app.route('/admin_approve/<int:customer_id>', methods=['POST'])
@@ -198,29 +177,89 @@ def add_or_send_money():
     return render_template('add_or_send_money.html')
 
 
+
 @app.route('/add_or_send_money', methods=['POST'])
 def add_to_balance():
     form_data = request.form.copy()
-    amount = form_data.get('amount')
-    if amount is not None:
-        form_data['amount'] = form_data.pop('amount')
-    conn.execute(text(
-        'INSERT INTO BankAccounts (Balance) VALUES (:amount)'),
-                 form_data)
+    amount = float(form_data.get('amount'))
+    customer_id = form_data.get('customer_id')  # Get the customer_id from the form data
+    account_number = form_data.get('account_number')  # Get the account_number from the form data
+    recipient_account_number = form_data.get(
+        'recipient_account_number')  # Get the recipient_account_number from the form data
+
+    # Get the sender from the Customers table
+    sender = conn.execute(
+        text('SELECT * FROM Customers WHERE CustomerID = :customer_id AND AccountNumber = :account_number'),
+        {'customer_id': customer_id, 'account_number': account_number}).fetchone()
+    if not sender:
+        return "Sender not found", 404
+
+    # Check if the sender has enough balance
+    if sender.Balance < amount:
+        return "Insufficient balance", 400
+
+    # If recipient_account_number is provided, transfer money to the recipient
+    if recipient_account_number:
+        # Get the recipient from the Customers table
+        recipient = conn.execute(text('SELECT * FROM Customers WHERE AccountNumber = :recipient_account_number'),
+                                 {'recipient_account_number': recipient_account_number}).fetchone()
+        if not recipient:
+            return "Recipient not found", 404
+
+        # Deduct the amount from the sender's balance
+        conn.execute(text(
+            'UPDATE Customers SET Balance = Balance - :amount WHERE CustomerID = :customer_id AND AccountNumber = :account_number'),
+            {'amount': amount, 'customer_id': customer_id, 'account_number': account_number})
+
+        # Add the amount to the recipient's balance
+        conn.execute(text(
+            'UPDATE Customers SET Balance = Balance + :amount WHERE AccountNumber = :recipient_account_number'),
+            {'amount': amount, 'recipient_account_number': recipient_account_number})
+    else:
+        # If recipient_account_number is not provided, add money to the sender's account
+        conn.execute(text(
+            'UPDATE Customers SET Balance = Balance + :amount WHERE CustomerID = :customer_id AND AccountNumber = :account_number'),
+            {'amount': amount, 'customer_id': customer_id, 'account_number': account_number})
+
     conn.commit()
     return render_template('homepage.html')
-def generate_account_number():
 
+
+
+@app.route('/ViewAccount', methods=['POST', 'GET'])
+def view_account():
+    # Use the AccountNumber from the session
+    account_number = flask_session.get('account_number')
+    if account_number is None:
+        return "No account number found in session", 404
+
+    result = conn.execute(text('SELECT * FROM Customers WHERE AccountNumber = :account_number'),
+                          {'account_number': account_number})
+    conn.commit()
+
+    customer = result.fetchone()
+
+    if customer is None:
+        return "No customer found with the provided account number", 404
+
+    return render_template('ViewAccount.html', customer=customer)
+
+
+import random
+
+
+def generate_account_number():
     account_number = random.randint(100000, 999999)
 
     # Check if the generated account number already exists in the BankAccounts table
-    existing_account = conn.execute(text('SELECT * FROM BankAccounts WHERE AccountNumber = :account_number'),
+    existing_account = conn.execute(text('SELECT * FROM Customers WHERE AccountNumber = :account_number'),
                                     {'account_number': account_number}).fetchone()
 
     # If the account number already exists, generate a new one recursively
     if existing_account:
         return generate_account_number()
 
+    print(account_number)
     return account_number
 
 
