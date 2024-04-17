@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Money</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 400px;
+      margin: 50px auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      text-align: center;
+    }
+    form {
+      margin-top: 20px;
+    }
+    label, input, select {
+      display: block;
+      margin-bottom: 10px;
+    }
+    input[type="text"],
+    input[type="number"] {
+      width: calc(100% - 22px);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    input[type="submit"] {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      background-color:#45a049 ;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    input[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Add Money to Account</h2>
+    <form action="process_payment.php" method="POST">
+      <label for="card_type">Card Type:</label>
+      <select id="card_type" name="card_type" required>
+        <option value="" disabled selected>Select card type</option>
+        <option value="debit">Debit</option>
+        <option value="credit">Credit</option>
+      </select>
+      <label for="card_number">Card Number:</label>
+      <input type="text" id="card_number" name="card_number" required>
+      <label for="expiry_date">Expiry Date:</label>
+      <input type="text" id="expiry_date" name="expiry_date" placeholder="MM/YYYY" required>
+      <label for="ccv">CCV:</label>
+      <input type="text" id="ccv" name="ccv" required>
+      <label for="amount">Amount ($):</label>
+      <input type="number" id="amount" name="amount" min="0.01" step="0.01" required>
+      <input type="submit" value="Add Money">
+    </form>
+  </div>
+</body>
+</html>
