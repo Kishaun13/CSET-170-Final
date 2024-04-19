@@ -29,6 +29,7 @@ def login():
 
 from flask import session as flask_session
 
+
 @app.route('/login', methods=['POST'])
 def login_post():
     with app.app_context():
@@ -62,6 +63,8 @@ def login_post():
         else:
             invalid = "Invalid email or password"
             return render_template('login.html', invalid=invalid)
+
+
 def get_logged_in_account_number():
     with app.app_context():
         engine = create_engine(connect)
@@ -125,6 +128,7 @@ def create_request_post():
 def my_account():
     return render_template('my_account.html')
 
+
 @app.route('/admin_edit', methods=['GET'])
 def admin_edit():
     # Check if the user is logged in as admin
@@ -132,7 +136,8 @@ def admin_edit():
         return render_template('login.html')
 
     # Fetch all customer accounts
-    customers = conn.execute(text('SELECT CustomerID, acc_status, OpenDate, SSN, Address, PhoneNumber, Email, Balance, AccountNumber FROM Customers')).fetchall()
+    customers = conn.execute(text(
+        'SELECT CustomerID, acc_status, OpenDate, SSN, Address, PhoneNumber, Email, Balance, AccountNumber FROM Customers')).fetchall()
 
     return render_template('admin_edit.html', customers=customers)
 
@@ -153,15 +158,16 @@ def admin_edit_post():
     conn.commit()
 
     # Fetch all customer accounts
-    customers = conn.execute(text('SELECT CustomerID, acc_status, OpenDate, SSN, Address, PhoneNumber, Email, Balance, AccountNumber FROM Customers')).fetchall()
+    customers = conn.execute(text(
+        'SELECT CustomerID, acc_status, OpenDate, SSN, Address, PhoneNumber, Email, Balance, AccountNumber FROM Customers')).fetchall()
 
     return render_template('admin_edit.html', customers=customers)
-
 
 
 @app.route('/add_or_send_money', methods=['GET'])
 def add_or_send_money():
     return render_template('add_or_send_money.html')
+
 
 @app.route('/add_or_send_money', methods=['POST'])
 def add_to_balance():
@@ -210,7 +216,6 @@ def add_to_balance():
     return render_template('homepage.html')
 
 
-
 @app.route('/ViewAccount', methods=['POST', 'GET'])
 def view_account():
     # Use the AccountNumber from the session
@@ -239,7 +244,6 @@ def generate_account_number():
     # Check if the generated account number already exists in the BankAccounts table
     existing_account = conn.execute(text('SELECT * FROM Customers WHERE AccountNumber = :account_number'),
                                     {'account_number': account_number}).fetchone()
-
 
     if existing_account:
         return generate_account_number()
