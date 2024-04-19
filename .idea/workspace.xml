@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6b25a7ba-bc7b-4465-8f1a-975f1ed69703" name="Changes" comment="login and create" />
+    <list default="true" id="6b25a7ba-bc7b-4465-8f1a-975f1ed69703" name="Changes" comment="added admin functionality">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/Send_money.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/admin_accounts.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/admin_approve.html" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -27,7 +32,7 @@
   &quot;associatedIndex&quot;: 0
 }</component>
   <component name="ProjectId" id="2f8s8ksNyWdYmDQNhUUyqPkiv6i" />
-  <component name="ProjectLevelVcsManager">
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="1" id="Add" />
   </component>
   <component name="ProjectViewState">
@@ -39,7 +44,8 @@
     "DefaultHtmlFileTemplate": "HTML File",
     "Python.main.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true"
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main"
   }
 }]]></component>
   <component name="SharedIndexes">
@@ -80,6 +86,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="login" />
     <MESSAGE value="login and create" />
-    <option name="LAST_COMMIT_MESSAGE" value="login and create" />
+    <MESSAGE value="added admin functionality" />
+    <option name="LAST_COMMIT_MESSAGE" value="added admin functionality" />
   </component>
 </project>
