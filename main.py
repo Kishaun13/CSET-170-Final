@@ -125,58 +125,43 @@ def create_request_post():
 def my_account():
     return render_template('my_account.html')
 
-
-@app.route('/admin_accounts', methods=['GET'])
-def view_accounts():
-    return render_template('admin_accounts.html')
-
-
-@app.route('/admin_accounts', methods=['POST'])
-def view_accounts_post():
+@app.route('/admin_edit', methods=['GET'])
+def admin_edit():
     # Check if the user is logged in as admin
     if 'user_id' not in flask_session or flask_session['user_id'] != 1:
         return render_template('login.html')
 
-    # Fetch all user accounts that are not approved
-    accounts = conn.execute(text('SELECT * FROM Customers WHERE acc_status = "Pending"')).fetchall()
+    # Fetch all customer accounts
+    customers = conn.execute(text('SELECT CustomerID, acc_status, OpenDate, SSN, Address, PhoneNumber, Email, Balance, AccountNumber FROM Customers')).fetchall()
 
-    return render_template('admin_accounts.html', accounts=accounts)
-
-
+    return render_template('admin_edit.html', customers=customers)
 
 
-@app.route('/admin_approve/<int:customer_id>', methods=['POST'])
-def approve_account(customer_id):
+@app.route('/admin_edit', methods=['POST'])
+def admin_edit_post():
     # Check if the user is logged in as admin
     if 'user_id' not in flask_session or flask_session['user_id'] != 1:
         return render_template('login.html')
 
-    # Update the account status to "Approved"
-    conn.execute(text('UPDATE Customers SET acc_status = "Approved" WHERE CustomerID = :customer_id'),
-                 {'customer_id': customer_id})
+    # Get the customer_id and acc_status from the form data
+    customer_id = request.form.get('customer_id')
+    acc_status = request.form.get('acc_status')
+
+    # Update the acc_status for the specified customer
+    conn.execute(text('UPDATE Customers SET acc_status = :acc_status WHERE CustomerID = :customer_id'),
+                 {'acc_status': acc_status, 'customer_id': customer_id})
     conn.commit()
 
-    # Generate a unique bank account number for the approved user
-    account_number = generate_account_number()
+    # Fetch all customer accounts
+    customers = conn.execute(text('SELECT CustomerID, acc_status, OpenDate, SSN, Address, PhoneNumber, Email, Balance, AccountNumber FROM Customers')).fetchall()
 
-    # Insert the new bank account into the BankAccounts table
-    conn.execute(text('INSERT INTO BankAccounts (AccountNumber, CustomerID) VALUES (:account_number, :customer_id)'),
-                 {'account_number': account_number, 'customer_id': customer_id})
-    conn.commit()
+    return render_template('admin_edit.html', customers=customers)
 
-    return redirect('/admin_accounts')
-
-
-@app.route('/admin_approve/<int:customer_id>', methods=['GET'])
-def approve_account_page(customer_id):
-    return render_template('admin_approve.html', customer_id=customer_id)
 
 
 @app.route('/add_or_send_money', methods=['GET'])
 def add_or_send_money():
     return render_template('add_or_send_money.html')
-
-
 
 @app.route('/add_or_send_money', methods=['POST'])
 def add_to_balance():
@@ -194,9 +179,9 @@ def add_to_balance():
     if not sender:
         return "Sender not found", 404
 
-    # Check if the sender has enough balance
-    if sender.Balance < amount:
-        return "Insufficient balance", 400
+    # Check if the sender's acc_status is 'Approved'
+    if sender.acc_status != 'Approved':
+        return "Account not approved", 403
 
     # If recipient_account_number is provided, transfer money to the recipient
     if recipient_account_number:
@@ -216,7 +201,7 @@ def add_to_balance():
             'UPDATE Customers SET Balance = Balance + :amount WHERE AccountNumber = :recipient_account_number'),
             {'amount': amount, 'recipient_account_number': recipient_account_number})
     else:
-        # If recipient_account_number is not provided, add money to the sender's account
+        # Add the amount to the sender's balance
         conn.execute(text(
             'UPDATE Customers SET Balance = Balance + :amount WHERE CustomerID = :customer_id AND AccountNumber = :account_number'),
             {'amount': amount, 'customer_id': customer_id, 'account_number': account_number})
@@ -255,7 +240,7 @@ def generate_account_number():
     existing_account = conn.execute(text('SELECT * FROM Customers WHERE AccountNumber = :account_number'),
                                     {'account_number': account_number}).fetchone()
 
-    # If the account number already exists, generate a new one recursively
+
     if existing_account:
         return generate_account_number()
 
